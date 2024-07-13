@@ -23,7 +23,7 @@ namespace Bejeweled
         private Button btnNextBackground;
         private Timer timerCountdown;
 
-        private Panel gridPanel; // 8x8网格的Panel
+        private Panel gridPanel; // 8x8
         private int buttonSize;
         private int gridHeight;
         private int gridWidth;
