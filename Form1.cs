@@ -74,54 +74,56 @@ namespace Bejeweled
             backgroundFiles.Add("background4.jpg");
             backgroundFiles.Add("background5.jpg");
 
+            // 创建FlowLayoutPanel放置button -<
             Panel controlPanel = new Panel
             {
-                Dock = DockStyle.Left,
+                Dock = DockStyle.Left, //停靠在其父容器（窗体）的左侧 , Dock 属性可使controlPanel自动调整大小以适应窗体的大小变化
                 Width = 200,
-                BorderStyle = BorderStyle.FixedSingle
+                BorderStyle = BorderStyle.FixedSingle //加一个样式是实线的矩形边框
             };
-            this.Controls.Add(controlPanel);
+            this.Controls.Add(controlPanel); // 将controlPanel 添加到当前窗体的 Controls(窗体上所有控件的集合)集合中。
 
             InitializeLabels(controlPanel);
             InitializeButtons(controlPanel);
             InitializeTimer();
 
             swapTimer = new Timer();
-            swapTimer.Interval = 20;
-            swapTimer.Tick += SwapTimer_Tick;
+            swapTimer.Interval = 20; // 设置动画的刷新间隔  即每20毫秒就会触发一次 Tick 事件
+            swapTimer.Tick += SwapTimer_Tick;  //将两个函数进行绑定
         }
 
         private void PlayMusic()
         {
-            string currentDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            string currentDirectory = AppDomain.CurrentDomain.BaseDirectory;  //获取了应用程序的当前工作目录
             string musicPath = Path.Combine(currentDirectory, "..\\..\\Properties\\music\\blackgroundmusic1.mp3");
 
-            if (!File.Exists(musicPath))
+            if (!File.Exists(musicPath)) //检查文件是否存在
             {
                 MessageBox.Show("The MP3 file does not exist.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
-            mp3FileReader = new Mp3FileReader(musicPath);
+            mp3FileReader = new Mp3FileReader(musicPath); //Mp3FileReader 类来读取 MP3 文件
 
             if (waveOut == null)
             {
-                waveOut = new WaveOutEvent();
+                waveOut = new WaveOutEvent();  //waveOut对象（WaveOutEvent 类型变量)用于处理音频输出
             }
 
-            if (!isGameMusicStarted) 
+            if (!isGameMusicStarted)  //播放停止事件
+                                      // 音乐播放停止时，将重新初始化并播放音乐
             {
                 waveOut.PlaybackStopped += (sender, e) =>
+                //(sender, e) => { ... } 匿名委托，用于定义当事件被触发时应该执行的操作
                 {
                     // 重新播放
                     mp3FileReader?.Dispose();
                     mp3FileReader = new Mp3FileReader(musicPath);
-                    waveOut.Init(mp3FileReader);
-                    waveOut.Play();
-                    //isGameMusicStarted = true;
+                    waveOut.Init(mp3FileReader);  //重新初始化音频输出
+                    waveOut.Play();   //重新开始播放  
                 };
             }
-            
+
             waveOut.Init(mp3FileReader);
             waveOut.Play();
             isGameMusicStarted = false;
@@ -129,7 +131,7 @@ namespace Bejeweled
 
         private void PlayNextSong()
         {
-            if (musicFiles.Count > 0)
+            if (musicFiles.Count > 0) //检查列表是否为空
             {
                 string currentDirectory = AppDomain.CurrentDomain.BaseDirectory;
                 string musicPath = Path.Combine(currentDirectory, "..\\..\\Properties\\music\\" + musicFiles[currentSongIndex]);
@@ -154,19 +156,20 @@ namespace Bejeweled
             if (waveOut != null)
             {
                 waveOut.Stop();
-                waveOut.Dispose();
-                mp3FileReader?.Dispose();
-                isGameMusicStarted = false;
+                waveOut.Dispose(); //释放 waveOut 资源
+                mp3FileReader?.Dispose();  //释放 mp3FileReader 资源
+                isGameMusicStarted = false;  //播放暂停
             }
         }
 
         private void UpdateScoreDisplay()
         {
-            labelScore.Text = $"Score: {score}";
+            labelScore.Text = $"Score: {score}";  //字符串插值（$""）是一种方便的格式化字符串的方式
         }
 
         private void InitializeLabels(Panel panel)
         {
+            // 分数标签
             labelScore = new Label
             {
                 Text = "Score: 0",
@@ -175,6 +178,7 @@ namespace Bejeweled
             };
             panel.Controls.Add(labelScore);
 
+            // 倒计时标签
             labelCountdown = new Label
             {
                 Text = "Time: 60",
@@ -186,6 +190,7 @@ namespace Bejeweled
 
         private void InitializeButtons(Panel panel)
         {
+            // 开始button
             btnStart = new Button
             {
                 Text = "Start",
@@ -195,6 +200,7 @@ namespace Bejeweled
             btnStart.Click += BtnStart_Click;
             panel.Controls.Add(btnStart);
 
+            // 重新开始button
             btnRestart = new Button
             {
                 Text = "Restart",
@@ -363,12 +369,12 @@ namespace Bejeweled
             return inputForm.ShowDialog() == DialogResult.OK ? inputBox.Text : null;
         }
 
-        private void BtnTimeBooster_Click(object sender, EventArgs e)
+        private void BtnTimeBooster_Click(object sender, EventArgs e) //时间增强按钮
         {
-            if (timeBoosterCount > 0)
+            if (timeBoosterCount > 0) //判断玩家拥有的时间增强器的数量是否大于零
             {
                 timerCountdown.Interval = 1000;
-                int newTimeLeft = 20 + int.Parse(labelCountdown.Text.Split(':')[1].Trim());
+                int newTimeLeft = 20 + int.Parse(labelCountdown.Text.Split(':')[1].Trim()); //从 labelCountdown 标签控件的文本中解析出剩余时间，并加上 20 秒
                 labelCountdown.Text = $"Time: {newTimeLeft}";
                 timeBoosterCount--;
             }
@@ -391,11 +397,11 @@ namespace Bejeweled
             {
                 score = 0;
                 UpdateScoreDisplay();
-                timerCountdown.Start();
-                isGameStarted = true;
-                InitializeGrid();
+                timerCountdown.Start();  //启动倒计时定时器
+                isGameStarted = true;  //表示游戏开始了
+                InitializeGrid();  //设置游戏网格
 
-                CheckAndEliminateMatches();
+                CheckAndEliminateMatches();   // 检查并消除匹配
 
                 if (!isGameMusicStarted)
                 {
@@ -450,27 +456,30 @@ namespace Bejeweled
 
         private void TimerCountdown_Tick(object sender, EventArgs e)
         {
+            // 每次计时器触发时，时间减 1
             int timeLeft = int.Parse(labelCountdown.Text.Split(':')[1].Trim()) - 1;
 
+            // 更新时间标签
             labelCountdown.Text = $"Time: {timeLeft}";
 
+            // 检查时间是否已经用完
             if (timeLeft <= 0)
             {
                 timerCountdown.Stop();
-                isGameStarted = false;
-                var result = MessageBox.Show(
+                isGameStarted = false; // 游戏结束，重置状态
+                var result = MessageBox.Show(  //显示游戏结束对话框
                     "Time's up! Final Score: " + score + ".\n" +
                     "Do you want to restart the game?",
                     "Game Over", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
 
-                if (result == DialogResult.Yes)
+                if (result == DialogResult.Yes)  //处理用户响应，即选择Yes
                 {
                     BtnRestart_Click(sender, e);
                 }
                 else if (result == DialogResult.No)
                 {
-                    ClearGrid();
-                    Application.Exit();
+                    ClearGrid(); // 清除网格
+                    Application.Exit();  //退出应用程序
                 }
             }
         }
@@ -480,7 +489,7 @@ namespace Bejeweled
             if (gridPanel != null)
             {
                 this.Controls.Remove(gridPanel);
-                gridPanel.Dispose();
+                gridPanel.Dispose();  ////释放控件资源
             }
 
             buttonSize = 50;
@@ -501,28 +510,30 @@ namespace Bejeweled
             this.Controls.Add(gridPanel);
 
             Random random = new Random();
-            string lastImageName = null;
+            string lastImageName = null; // 用于记录上一个使用的图片名称
+            // 所有图片资源名称的数组  将 Select 方法返回的字符串序列转换成一个字符串数组
 
             if (images == null)
             {
-                images = Enumerable.Range(1, numberOfImages)
-                                   .Select(i => $"button_image{i}")
-                                   .ToArray();
+                // 所有图片资源名称的数组  将 Select 方法返回的字符串序列转换成一个字符串数组
+                images = Enumerable.Range(1, numberOfImages)  //Enumerable.Range方法生成一个整数序列，包含 1和numberOfImages
+                                   .Select(i => $"button_image{i}")    //将每个整数 i 转换成一个字符串，例button_image1    Select 是LINQ的一个扩展方法，它对序列中的每个元素执行一个投影（即转换操作）
+                                   .ToArray(); //将源序列转换成一个数组
             }
 
             for (int row = 0; row < gridHeight; row++)
             {
                 for (int col = 0; col < gridWidth; col++)
                 {
-                    string resourceName;
+                    string resourceName; // 存储将要使用的图片资源的名称
                     if (random.NextDouble() < 0.05 && lastImageName != null) // 有5%的概率使用上一个图片
                     {
                         resourceName = lastImageName;
                     }
-                    else
+                    else // 否则随机选择一个新的图片
                     {
                         resourceName = images[random.Next(images.Length)];
-                        lastImageName = resourceName;
+                        lastImageName = resourceName; // 更新上一个使用的图片名称
                     }
 
                     grid[row, col] = resourceName;
@@ -533,12 +544,13 @@ namespace Bejeweled
                     {
                         Size = new Size(buttonSize, buttonSize),
                         Location = new Point(col * (buttonSize + padding), row * (buttonSize + padding)),
-                        BackColor = Color.Transparent
+                        BackColor = Color.Transparent  // 设置按钮背景色为透明
                     };
 
                     if (image != null)
                     {
-                        button.BackgroundImageLayout = ImageLayout.Zoom;
+                        button.BackgroundImageLayout = ImageLayout.Zoom; // 设置图片布局
+                        //  ImageLayout.Zoom 可以创建动态的按钮背景效果，图片的大小会随着按钮大小的变化而变化
                         button.BackgroundImage = image;
                     }
                     else
@@ -552,21 +564,21 @@ namespace Bejeweled
             }
         }
 
-        private void CheckAndEliminateMatches()
+        private void CheckAndEliminateMatches()  //检查和消除匹配
         {
-            bool anyMatchFound;
+            bool anyMatchFound;  //是否找到匹配项
             do
             {
                 anyMatchFound = false;
                 int matchCount;
-
+                //检查行
                 for (int row = 0; row < gridHeight; row++)
                 {
-                    for (int col = 0; col < gridWidth - 2; col++)
+                    for (int col = 0; col < gridWidth - 2; col++)   //gridWidth - 2 确保在检查的元素之后至少还有两个元素来验证匹配是否继续
                     {
                         if (grid[row, col] != null && IsMatchInRow(row, col))
                         {
-                            matchCount = 3;
+                            matchCount = 3; //匹配项的数量，初始化为3,及至少三个
                             while (col + matchCount < gridWidth
                                 && grid[row, col + matchCount] != null
                                 && grid[row, col] == grid[row, col + matchCount])
@@ -574,13 +586,13 @@ namespace Bejeweled
                                 matchCount++;
                             }
                             anyMatchFound = true;
-                            EliminateRowMatches(row, col, matchCount);
+                            EliminateRowMatches(row, col, matchCount); //从网格中移除指定行中从 col 开始、长度为 matchCount 的项
                             AddScore(matchCount);
                             break;
                         }
                     }
                 }
-
+                //检查列
                 for (int col = 0; col < gridWidth; col++)
                 {
                     for (int row = 0; row < gridHeight - 2; row++)
@@ -601,7 +613,7 @@ namespace Bejeweled
                         }
                     }
                 }
-
+                //更新界面显示
                 if (anyMatchFound)
                 {
                     UpdateGridDisplay();
@@ -669,7 +681,7 @@ namespace Bejeweled
                     }
                 }
             }
-
+            // 顶部空白位置生成随机宝石
             Random random = new Random();
             for (int col = 0; col < gridWidth; col++)
             {
@@ -708,18 +720,19 @@ namespace Bejeweled
 
         private void PopulateGridWithButtons()
         {
-            
+
         }
 
         private void AddScore(int matchCount)
         {
-            int scoreToAdd = (int)Math.Pow(2, matchCount - 2);
+            int scoreToAdd = (int)Math.Pow(2, matchCount - 2);   //Math.Pow 为幂函数
             score += scoreToAdd;
             UpdateScoreDisplay();
         }
 
-        private void UpdateGridDisplay()
+        private void UpdateGridDisplay() //更新网格显示
         {
+            // gridPanel.Controls.OfType<Button>() 遍历gridPanel中的所有控件，并使用OfType<Button>()方法筛选出所有类型为Button的控件
             var controlsToRemove = gridPanel.Controls.OfType<Button>().Where(button =>
             {
                 int gridY = button.Location.Y / buttonSize;
@@ -731,8 +744,9 @@ namespace Bejeweled
             int interval = 10;
             int increaseStep = 2;
 
-            foreach (var button in controlsToRemove)
+            foreach (var button in controlsToRemove)  //循环遍历每一个
             {
+                // 创建动画 Timer
                 Timer animationTimer = new Timer();
                 animationTimer.Interval = interval;
                 bool isIncreasing = true;
@@ -772,11 +786,11 @@ namespace Bejeweled
                         }
                     }
                 };
-                animationTimer.Start();
+                animationTimer.Start(); //开始动画
             }
         }
 
-        private bool IsMatchInRow(int row, int col)
+        private bool IsMatchInRow(int row, int col)  //检查指定行中是否有连续相同的匹配项
         {
             // 数组越界
             if (col >= gridWidth - 2) return false;
@@ -786,7 +800,7 @@ namespace Bejeweled
                    grid[row, col] == grid[row, col + 2];
         }
 
-        private bool IsMatchInColumn(int col, int row)
+        private bool IsMatchInColumn(int col, int row) //检查指定列中是否有连续相同的匹配项
         {
             if (row >= gridHeight - 2) return false;
 
@@ -818,6 +832,7 @@ namespace Bejeweled
         {
             for (int i = 0; i < count; i++)
             {
+                // 从 gridPanel 中移除按钮
                 foreach (Control control in gridPanel.Controls)
                 {
                     if (control is Button button && button.Location.Y / buttonSize == startRow + i && button.Location.X / buttonSize == col)
@@ -828,7 +843,7 @@ namespace Bejeweled
                     }
                 }
 
-                grid[startRow + i, col] = null;
+                grid[startRow + i, col] = null; // 标记为null，表示消除
             }
         }
 
@@ -863,17 +878,17 @@ namespace Bejeweled
                 if ((Math.Abs(firstx - secondx) == 1 && Math.Abs(firsty - secondy) == 0) ||
                     (Math.Abs(firstx - secondx) == 0 && Math.Abs(firsty - secondy) == 1))
                 {
-                    firstSwapButton = firstClickedButton;
+                    firstSwapButton = firstClickedButton;    //记录交换按钮
                     secondSwapButton = secondClickedButton;
-                    firstSwapButtonOriginalLocation = firstSwapButton.Location;
+                    firstSwapButtonOriginalLocation = firstSwapButton.Location;   //记录交换前位置
                     secondSwapButtonOriginalLocation = secondSwapButton.Location;
                     swapSteps = 0;
 
-                    swapTimer.Start();
+                    swapTimer.Start();  //启动交换动画
                 }
                 else
                 {
-                    ResetClickedButtons();
+                    ResetClickedButtons();  //重置点击按钮
                 }
             }
         }
@@ -882,9 +897,10 @@ namespace Bejeweled
         {
             if (swapSteps < buttonSize / swapStep)
             {
+                // 计算每步移动的距离
                 int stepX = (secondSwapButtonOriginalLocation.X - firstSwapButtonOriginalLocation.X) / (buttonSize / swapStep);
                 int stepY = (secondSwapButtonOriginalLocation.Y - firstSwapButtonOriginalLocation.Y) / (buttonSize / swapStep);
-
+                // 移动按钮位置
                 firstSwapButton.Location = new Point(firstSwapButton.Location.X + stepX, firstSwapButton.Location.Y + stepY);
                 secondSwapButton.Location = new Point(secondSwapButton.Location.X - stepX, secondSwapButton.Location.Y - stepY);
 
